@@ -11,3 +11,4 @@ class GenderChoices(models.TextChoices):
 class UserRole(models.TextChoices):
     RECRUITER = "RECRUITER", "Recruiter"
     CANDIDATE = "CANDIDATE", "Candidate"
+

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from core.models import User, UserProfile
+from job.models import Job
 
 from shared.base_admin import BaseModelAdmin
 
@@ -25,6 +26,7 @@ class UserAdmin(BaseModelAdmin):
                     "status",
                     "is_staff",
                     "is_superuser",
+                    "role"
                 ),
             },
         ),
@@ -54,3 +56,58 @@ class UserProfileAdmin(BaseModelAdmin):
         "date_of_birth",
         "gender",
     ]
+
+@admin.register(Job)
+class JobAdmin(admin.ModelAdmin):
+    model = Job
+    list_display = [
+        "job_id",
+        "title",
+        "recruiter",
+        "location",
+        "salary",
+        "status",
+        "deadline",
+        "created_at",
+    ]
+    
+    fieldsets = (
+        (None, {
+            "fields": (
+                "title",
+                "description",
+                "recruiter",
+                "location",
+                "salary",
+                "deadline",
+                "status",
+            )
+        }),
+        (
+            "Metadata",
+            {
+                "fields": (
+                    "job_id",
+                    "created_at",
+                    "updated_at",
+                ),
+            },
+        ),
+    )
+    
+    list_filter = [
+        "status",
+        "location",
+        "deadline",
+        "created_at",
+    ]
+    
+    search_fields = ("title", "description", "location", "recruiter__email")
+    readonly_fields = [
+        "job_id",
+        "created_at",
+        "updated_at",
+    ]
+    list_select_related = ["recruiter"]
+    show_full_result_count = False
+    ordering = ("-created_at",)
