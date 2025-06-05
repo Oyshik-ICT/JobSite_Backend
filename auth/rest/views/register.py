@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class UserRegisterView(viewsets.ModelViewSet):
     """User registration view"""
 
-    queryset = User.objects.all()
+    queryset = User.objects.order_by("id")
     serializer_class = UserRegisterSerializer
 
     def get_permissions(self):
@@ -40,10 +40,12 @@ class UserRegisterView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filter queryset based on role"""
-
+        if getattr(self, "swagger_fake_view", False):
+            return User.objects.none()
+        
         user = self.request.user
         qs = super().get_queryset()
-        if not user.is_staff and user.role != "RECRUITER":
+        if not user.is_staff and getattr(user, 'role', None) != "RECRUITER":
             qs = qs.filter(email=user.email)
         return qs
 
