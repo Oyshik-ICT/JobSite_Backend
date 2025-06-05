@@ -3,6 +3,9 @@ from job.rest.serializers.job import JobSerializer, JobApplicationSerializer, Up
 from rest_framework import viewsets
 from auth.permissions import IsRecruiter, IsCandidate
 from rest_framework.exceptions import ValidationError
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from job.choices import StatusChoices, ApplicationStatusChoices
 
 class JobViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.select_related("recruiter")
@@ -36,3 +39,23 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             raise ValidationError("You have already applied for this job")
         
         serializer.save(candidate=candidate)
+
+class SpecificRecruiterDashboardAPIView(APIView):
+    permission_classes = [IsRecruiter]
+
+    def get(self, request):
+        recruiter = request.user
+
+        total_published_job = Job.objects.filter(recruiter=recruiter).count()
+        total_closed_job = Job.objects.filter(recruiter=recruiter, status=StatusChoices.CLOSED).count()
+        total_candidate_application = JobApplication.objects.filter(job__recruiter=recruiter).count()
+        total_candidate_hired = JobApplication.objects.filter(job__recruiter=recruiter, status=ApplicationStatusChoices.HIRED).count()
+        total_candidate_rejected = JobApplication.objects.filter(job__recruiter=recruiter, status=ApplicationStatusChoices.REJECTED).count()
+        
+        return Response({
+            "total_published_job": total_published_job,
+            "total_closed_job": total_closed_job,
+            "total_candidate_application": total_candidate_application,
+            "total_candidate_hired": total_candidate_hired,
+            "total_candidate_rejected": total_candidate_rejected
+        })
