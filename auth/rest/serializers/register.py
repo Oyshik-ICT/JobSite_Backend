@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
+from rest_framework import serializers
 
 from core.models import User, UserProfile
 
@@ -43,7 +43,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         validated_data.pop("confirm_password", None)
 
         return super().create(validated_data)
-    
+
     def update(self, instance, validated_data):
         update_fields = []
         validated_data.pop("confirm_password", None)
@@ -57,10 +57,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         instance.save(update_fields=update_fields)
 
         return instance
-    
+
+
 class ForgetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
-    
+
+
 class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
@@ -77,6 +79,5 @@ class ResetPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "Password and confirm password don't match"
             )
-        
-        return data
 
+        return data
