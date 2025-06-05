@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.models import User, UserProfile
-from job.models import Job
+from job.models import Job, JobApplication
 
 from shared.base_admin import BaseModelAdmin
 
@@ -111,3 +111,55 @@ class JobAdmin(admin.ModelAdmin):
     list_select_related = ["recruiter"]
     show_full_result_count = False
     ordering = ("-created_at",)
+
+@admin.register(JobApplication)
+class JobApplicationAdmin(admin.ModelAdmin):
+    model = JobApplication
+    list_display = [
+        "application_id",
+        "candidate",
+        "job",
+        "status",
+        "applied_at",
+    ]
+    
+    fieldsets = (
+        (None, {
+            "fields": (
+                "candidate",
+                "job",
+                "status",
+            )
+        }),
+        (
+            "Metadata",
+            {
+                "fields": (
+                    "application_id",
+                    "applied_at",
+                ),
+            },
+        ),
+    )
+    
+    list_filter = [
+        "status",
+        "applied_at",
+        "job__title",
+    ]
+    
+    search_fields = (
+        "candidate__email", 
+        "candidate__first_name", 
+        "candidate__last_name",
+        "job__title",
+    )
+    
+    readonly_fields = [
+        "application_id",
+        "applied_at",
+    ]
+    
+    list_select_related = ["candidate", "job"]
+    show_full_result_count = False
+    ordering = ("-applied_at",)

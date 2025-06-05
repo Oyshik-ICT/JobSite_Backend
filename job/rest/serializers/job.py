@@ -1,4 +1,4 @@
-from job.models import Job
+from job.models import Job, JobApplication
 from rest_framework import serializers
 from django.utils import timezone
 
@@ -32,5 +32,22 @@ class JobSerializer(serializers.ModelSerializer):
             update_fields.append(attr)
 
         instance.save(update_fields=update_fields)
+
+        return instance
+    
+class JobApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobApplication
+        fields = ["application_id", "job", "candidate", "status", "applied_at"]
+
+        extra_kwargs = {"application_id":{"read_only": True}, "candidate":{"read_only": True}, "applied_at":{"read_only": True}, "status":{"read_only": True}}
+
+class UpdateJobApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobApplication
+        fields = ["status"]
+
+    def update(self, instance, validated_data):
+        instance.save(update_fields=["status"])
 
         return instance
