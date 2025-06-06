@@ -43,7 +43,9 @@ class JobViewSet(viewsets.ModelViewSet):
 class JobApplicationViewSet(viewsets.ModelViewSet):
     """Handle job applications by candidates and review by recruiters"""
 
-    queryset = JobApplication.objects.select_related("job", "candidate").order_by("applied_at")
+    queryset = JobApplication.objects.select_related("job", "candidate").order_by(
+        "applied_at"
+    )
 
     def get_serializer_class(self):
         """Return serializers based on action"""
@@ -64,10 +66,10 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Handle job application creation with validation for duplicates and job status"""
-        
+
         candidate = self.request.user
         job = serializer.validated_data.get("job")
-        
+
         if job.deadline < timezone.now().date() or job.status == StatusChoices.CLOSED:
             raise ValidationError("This job is no longer accepting applications")
         if JobApplication.objects.filter(candidate=candidate, job=job).exists():
