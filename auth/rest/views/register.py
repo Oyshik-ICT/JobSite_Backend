@@ -45,7 +45,7 @@ class UserRegisterView(viewsets.ModelViewSet):
         
         user = self.request.user
         qs = super().get_queryset()
-        if not user.is_staff and getattr(user, 'role', None) != "RECRUITER":
+        if not user.is_staff:
             qs = qs.filter(email=user.email)
         return qs
 
