@@ -2,20 +2,6 @@
 
 A comprehensive backend project built with Django and Django REST Framework for managing job postings and applications with role-based authentication.
 
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Installation & Setup](#-installation--setup)
-- [Environment Configuration](#-environment-configuration)
-- [Running the Server](#-running-the-server)
-- [API Documentation](#-api-documentation)
-- [Authentication](#-authentication)
-- [API Endpoints](#-api-endpoints)
-- [User Roles](#-user-roles)
-- [Usage Examples](#-usage-examples)
-
 ## ⭐ Features
 
 - **User Authentication & Authorization**
