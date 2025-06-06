@@ -1,11 +1,12 @@
 import logging
+from django.utils import timezone
 
 from rest_framework import status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from auth.permissions import IsCandidate, IsRecruiter
+from auth.permissions import IsCandidate, IsRecruiter, IsRecruiterOrCandidateOrAdmin
 from job.choices import ApplicationStatusChoices, StatusChoices
 from job.models import Job, JobApplication
 from job.rest.serializers.job import (
@@ -20,9 +21,16 @@ logger = logging.getLogger(__name__)
 class JobViewSet(viewsets.ModelViewSet):
     """Handles job creation and management by recruiters"""
 
-    queryset = Job.objects.select_related("recruiter")
-    permission_classes = [IsRecruiter]
+    queryset = Job.objects.select_related("recruiter").order_by("deadline")
     serializer_class = JobSerializer
+
+    def get_permissions(self):
+        if self.action == "list":
+            self.permission_classes = [IsRecruiterOrCandidateOrAdmin]
+        else:
+            self.permission_classes = [IsRecruiter]
+
+        return super().get_permissions()
 
     def perform_create(self, serializer):
         try:
@@ -35,7 +43,7 @@ class JobViewSet(viewsets.ModelViewSet):
 class JobApplicationViewSet(viewsets.ModelViewSet):
     """Handle job applications by candidates and review by recruiters"""
 
-    queryset = JobApplication.objects.select_related("job", "candidate")
+    queryset = JobApplication.objects.select_related("job", "candidate").order_by("applied_at")
 
     def get_serializer_class(self):
         """Return serializers based on action"""
@@ -55,13 +63,16 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
+        """Handle job application creation with validation for duplicates and job status"""
+        
+        candidate = self.request.user
+        job = serializer.validated_data.get("job")
+        
+        if job.deadline < timezone.now().date() or job.status == StatusChoices.CLOSED:
+            raise ValidationError("This job is no longer accepting applications")
+        if JobApplication.objects.filter(candidate=candidate, job=job).exists():
+            raise ValidationError("You have already applied for this job")
         try:
-            candidate = self.request.user
-            job = serializer.validated_data.get("job")
-
-            if JobApplication.objects.filter(candidate=candidate, job=job).exists():
-                raise ValidationError("You have already applied for this job")
-
             serializer.save(candidate=candidate)
         except Exception as e:
             logger.exception(f"Error during job application creation: {str(e)}")
